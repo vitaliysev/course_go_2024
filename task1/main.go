@@ -1,8 +1,8 @@
 package main
 
 import (
-	library "awesomeProject/library"
 	"fmt"
+	"task1/library"
 )
 
 type Book = library.Book
