@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const sizeOfStorage = 256
+
 type Book struct {
 	Author string
 	Title  string
@@ -74,7 +76,7 @@ func (storage *MyStorageMap) ClearInternal() {
 ///
 type MyLibrary struct {
 	books   map[string]int
-	MakeId  IdGenerator
+	makeID  IdGenerator
 	storage Searcher
 }
 
@@ -85,13 +87,13 @@ func (library *MyLibrary) SetStorage(newStorage Searcher) {
 
 func (library *MyLibrary) Upload(books ...Book) {
 	for _, book := range books {
-		library.books[book.Title] = library.MakeId()
+		library.books[book.Title] = library.makeID()
 		library.storage.AddBook(library.books[book.Title], book)
 	}
 }
 
-func (library *MyLibrary) ChangeIdGenerator(NewMakeId IdGenerator) {
-	library.MakeId = NewMakeId
+func (library *MyLibrary) ChangeIdGenerator(newMakeID IdGenerator) {
+	library.makeID = newMakeID
 	books_temp := []Book{}
 	for Title, _ := range library.books {
 		book, _ := library.Search(Title)
@@ -125,18 +127,18 @@ func IdSimple() func() int {
 
 func IdRandom() func() int {
 	rand.Seed(time.Now().UnixNano())
-	used := [256]bool{}
+	used := [sizeOfStorage]bool{}
 	return func() int {
 		var i = 0
-		for ; used[i]; i = rand.Intn(256) {
+		for ; used[i]; i = rand.Intn(sizeOfStorage) {
 		}
 		used[i] = true
 		return i
 	}
 }
 
-func NewLibrary(MakeId IdGenerator, storage Searcher) *MyLibrary {
-	return &MyLibrary{map[string]int{}, MakeId, storage}
+func NewLibrary(makeID IdGenerator, storage Searcher) *MyLibrary {
+	return &MyLibrary{map[string]int{}, makeID, storage}
 }
 func NewStorageMap() *MyStorageMap {
 	return &MyStorageMap{map[int]Book{}}
