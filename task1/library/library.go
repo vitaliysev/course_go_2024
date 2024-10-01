@@ -27,53 +27,6 @@ type Library interface {
 	ChangeIdGenerator(IdGenerator)
 }
 
-//
-type MyStorageSlice struct {
-	internal []Book
-	helper   map[int]int
-	size     int
-}
-
-func (storage *MyStorageSlice) AddBook(id int, book Book) {
-	storage.helper[id] = storage.size
-	storage.size++
-	storage.internal = append(storage.internal, book)
-}
-
-func (storage MyStorageSlice) SearchInternal(id int) (Book, bool) {
-	book := storage.internal[storage.helper[id]]
-	return book, true
-}
-
-func (storage *MyStorageSlice) ClearInternal() {
-	storage.helper = map[int]int{}
-	storage.size = 0
-	storage.internal = []Book{}
-}
-
-///
-
-///
-type MyStorageMap struct {
-	Internal map[int]Book
-}
-
-func (storage *MyStorageMap) AddBook(id int, book Book) {
-	storage.Internal[id] = book
-}
-
-func (storage MyStorageMap) SearchInternal(id int) (Book, bool) {
-	book, ok := storage.Internal[id]
-	return book, ok
-}
-
-func (storage *MyStorageMap) ClearInternal() {
-	storage.Internal = map[int]Book{}
-}
-
-///
-
-///
 type MyLibrary struct {
 	books   map[string]int
 	makeID  IdGenerator
@@ -94,13 +47,13 @@ func (library *MyLibrary) Upload(books ...Book) {
 
 func (library *MyLibrary) ChangeIdGenerator(newMakeID IdGenerator) {
 	library.makeID = newMakeID
-	books_temp := []Book{}
+	booksTemp := []Book{}
 	for Title, _ := range library.books {
 		book, _ := library.Search(Title)
-		books_temp = append(books_temp, book)
+		booksTemp = append(booksTemp, book)
 	}
 	library.Clear()
-	library.Upload(books_temp...)
+	library.Upload(booksTemp...)
 }
 func (library *MyLibrary) Clear() {
 	library.books = map[string]int{}
@@ -118,10 +71,10 @@ func (library MyLibrary) Search(Title string) (Book, bool) {
 ///
 
 func IdSimple() func() int {
-	next_id := 0
+	nextID := 0
 	return func() int {
-		next_id++
-		return next_id
+		nextID++
+		return nextID
 	}
 }
 
@@ -139,10 +92,4 @@ func IdRandom() func() int {
 
 func NewLibrary(makeID IdGenerator, storage Searcher) *MyLibrary {
 	return &MyLibrary{map[string]int{}, makeID, storage}
-}
-func NewStorageMap() *MyStorageMap {
-	return &MyStorageMap{map[int]Book{}}
-}
-func NewStorageSlice() *MyStorageSlice {
-	return &MyStorageSlice{[]Book{}, map[int]int{}, 0}
 }
