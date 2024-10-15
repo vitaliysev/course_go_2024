@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 )
+
+type Client struct {
+	address string
+}
 
 const timeout = 15 * time.Second
 
@@ -16,8 +19,11 @@ type Response struct {
 	Str string `json:"outputString"`
 }
 
-func RunGetAPIVersionRequest(url string) string {
-	resp, err := http.Get(url)
+func MakeNewClient(protocol string, host string, port string) Client {
+	return Client{protocol + "://" + host + ":" + port}
+}
+func (client Client) RunGetAPIVersionRequest() string {
+	resp, err := http.Get(client.address + "/version")
 	if err != nil {
 		return ""
 	}
@@ -29,10 +35,10 @@ func RunGetAPIVersionRequest(url string) string {
 	return string(body)
 }
 
-func RunHardOpRequest(url string) (int, bool) {
+func (client Client) RunHardOpRequest() (int, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", client.address+"/hard-op", nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return 0, false
@@ -41,9 +47,9 @@ func RunHardOpRequest(url string) (int, bool) {
 	return resp.StatusCode, true
 }
 
-func RunPostRequest(url, str string) string {
+func (client Client) DecodeString(str string) string {
 	reqBody := bytes.NewBuffer([]byte(str))
-	resp, err := http.Post(url, "application/json", reqBody)
+	resp, err := http.Post(client.address+"/decode", "application/json", reqBody)
 	if err != nil {
 		return ""
 	}
@@ -58,35 +64,4 @@ func RunPostRequest(url, str string) string {
 		return ""
 	}
 	return res.Str
-}
-func DoRequests(urls []string) {
-	var err = true
-	for i := 0; err; i++ {
-		index := i % len(urls)
-		switch index {
-		case 0:
-			version := RunGetAPIVersionRequest(urls[index])
-			if version == "" {
-				fmt.Println("failed to get API version")
-				err = false
-			} else {
-				fmt.Println(version)
-			}
-		case 1:
-			str := RunPostRequest(urls[index], `{"inputString": "SGF2ZSBhIG5pY2UgZGF5"}`)
-			if str == "" {
-				fmt.Println("failed to post")
-				err = false
-			} else {
-				fmt.Println(str)
-			}
-		case 2:
-			status, ok := RunHardOpRequest(urls[index])
-			if !ok {
-				fmt.Println(ok, "worked too long")
-			} else {
-				fmt.Println(ok, status)
-			}
-		}
-	}
 }

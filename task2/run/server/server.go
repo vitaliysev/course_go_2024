@@ -29,6 +29,7 @@ func main() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Could not listen on %s: %v\n", ":8080", err)
 		}
+
 	}()
 
 	log.Println("Server is ready to handle requests at :8080")

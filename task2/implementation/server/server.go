@@ -27,20 +27,21 @@ func APIVersionGetRequest(w http.ResponseWriter, _ *http.Request) {
 
 func PostRequest(w http.ResponseWriter, r *http.Request) {
 	var req DecodedRequest
+	log.Println(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Fatal("Invalid request")
+		log.Println("Invalid request")
 		return
 	}
 
 	decodedStr, err := base64.StdEncoding.DecodeString(req.Str)
 	if err != nil {
-		log.Fatal("Failed to encode")
+		log.Println("Failed to encode")
 		return
 	}
 	response := DecodedResponse{string(decodedStr)}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Fatal("Failed to encode")
+		log.Println("Failed to encode")
 		return
 	}
 }
